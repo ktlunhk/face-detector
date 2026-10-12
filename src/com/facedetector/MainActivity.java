@@ -16,6 +16,8 @@ import android.os.Bundle;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.LinearLayout;
@@ -100,7 +102,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
     private LinearLayout.LayoutParams buttonParams() { return uiStyle.buttonParams(); }
     private void makeSlider(LinearLayout panel, final String name, int initial, final int min, final int step, int max, final int kind) {
         final TextView label = new TextView(this);
-        label.setTextColor(0xFFE2EAF4); label.setPadding(dp(5),dp(3),dp(5),0);
+        label.setTextColor(0xFFE2EAF4); label.setPadding(dp(4),0,dp(4),0);
         setIcon(label, kind == 6 ? 4 : kind == 7 ? 5 : kind == 8 ? 6 : kind == 3 ? 7 : kind == 4 ? 8 : 9, 0xFFB7D7E6);
         panel.addView(label);
         SeekBar bar = new SeekBar(this);
@@ -110,7 +112,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
             bar.setThumbTintList(ColorStateList.valueOf(0xFF22D3EE));
             bar.setProgressBackgroundTintList(ColorStateList.valueOf(0xFF405267));
         }
-        panel.addView(bar, new LinearLayout.LayoutParams(-1, dp(29)));
+        panel.addView(bar, new LinearLayout.LayoutParams(-1, dp(23)));
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar b,int progress,boolean user) {
                 int value = min + progress*step;
@@ -150,20 +152,20 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
         else if (kind == 3 || kind == 4) label.setText(name + ": " + current + " ms");
         else if (kind == 8) label.setText(name + ": " + current);
         else label.setText(name + ": " + current + "%");
-        label.setTextSize(14);
-        label.setMinHeight(dp(21));
+        label.setTextSize(12);
+        label.setMinHeight(dp(17));
     }
     private void createSettings() {
         settingsPanel = new LinearLayout(this);
         settingsPanel.setOrientation(LinearLayout.VERTICAL);
-        settingsPanel.setPadding(dp(12), dp(6), dp(12), dp(6));
+        settingsPanel.setPadding(dp(9), dp(4), dp(9), dp(4));
         settingsPanel.setBackground(rounded(0xFF142236, 0xFF2A4159, 20));
         TextView heading = new TextView(this);
         heading.setText("Face detection settings (live)");
         setIcon(heading, 10, 0xFFE2EAF4);
-        heading.setTextSize(16);
+        heading.setTextSize(14);
         heading.setTextColor(Color.WHITE);
-        heading.setPadding(dp(5), dp(2), dp(5), dp(3));
+        heading.setPadding(dp(4), 0, dp(4), dp(2));
         settingsPanel.addView(heading);
         makeSlider(settingsPanel,"Confidence threshold",Math.round(yuNetConfidence*100),10,5,95,6);
         makeSlider(settingsPanel,"NMS threshold",Math.round(yuNetNms*100),5,5,90,7);
@@ -171,18 +173,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
         makeSlider(settingsPanel,"Interval",interval,50,50,1000,3);
         makeSlider(settingsPanel,"Hold time",holdMs,0,50,2000,4);
         makeSlider(settingsPanel,"Smoothing",Math.round(smoothing*100),0,5,95,5);
-        android.widget.ScrollView scroll = new android.widget.ScrollView(this);
-        scroll.setFillViewport(true);
-        scroll.setVerticalScrollBarEnabled(true);
-        scroll.setSmoothScrollingEnabled(true);
-        scroll.addView(settingsPanel);
-        scroll.setBackgroundColor(0xFF091420);
-        scroll.setPadding(dp(10), dp(3), dp(10), dp(4));
-        scroll.setClipToPadding(false);
-        // Dedicated lower region: never overlays the image or action buttons.
-        // Scroll only the settings. The preview and action buttons remain fixed.
-        LinearLayout.LayoutParams settingsLp = new LinearLayout.LayoutParams(-1, 0, 1.55f);
-        root.addView(scroll, settingsLp);
+        // Keep all six settings visible without a scroll container.
+        LinearLayout.LayoutParams settingsLp = new LinearLayout.LayoutParams(-1, -2);
+        settingsLp.setMargins(dp(10), dp(2), dp(10), dp(4));
+        root.addView(settingsPanel, settingsLp);
     }
     private int dp(int value) {
         return (int)(value * getResources().getDisplayMetrics().density + 0.5f);
@@ -249,10 +243,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
         TextView appTitle = new TextView(this);
         appTitle.setText("Face Detector");
         appTitle.setTextColor(Color.WHITE);
-        appTitle.setTextSize(23);
+        appTitle.setTextSize(20);
         appTitle.setTypeface(null, android.graphics.Typeface.BOLD);
         appTitle.setGravity(Gravity.CENTER_VERTICAL);
-        appTitle.setPadding(dp(18), dp(9), dp(16), dp(7));
+        appTitle.setPadding(dp(15), dp(5), dp(12), dp(4));
         root.addView(appTitle, new LinearLayout.LayoutParams(-1, -2));
 
         LinearLayout actions = new LinearLayout(this);
@@ -272,7 +266,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
 
         LinearLayout modes = new LinearLayout(this);
         modes.setOrientation(LinearLayout.HORIZONTAL);
-        modes.setPadding(dp(7), 0, dp(7), dp(2));
+        modes.setPadding(dp(7), 0, dp(7), 0);
         Button switchCameraButton = new Button(this);
         switchCameraButton.setText("Switch camera");
         styleAction(switchCameraButton, false);
@@ -304,8 +298,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
         previewArea = new FrameLayout(this);
         previewArea.setBackground(rounded(0xFF020B12, 0xFF2A4159, 16));
         previewArea.setClipToOutline(true);
-        LinearLayout.LayoutParams previewLp = new LinearLayout.LayoutParams(-1, 0, 0.85f);
-        previewLp.setMargins(dp(10), dp(4), dp(10), dp(3));
+        LinearLayout.LayoutParams previewLp = new LinearLayout.LayoutParams(-1, 0, 1f);
+        previewLp.setMargins(dp(10), dp(2), dp(10), dp(2));
         root.addView(previewArea, previewLp);
         surface = new SurfaceView(this);
         previewArea.addView(surface);
@@ -845,17 +839,41 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
         private Bitmap bitmap;
         private RectF[] faces = new RectF[0];
         private boolean diagnostic = false;
+        private float zoom = 1f;
+        private float panX = 0f, panY = 0f;
+        private float lastX, lastY;
+        private boolean dragging;
+        private ScaleGestureDetector pinch;
         private Paint imagePaint = new Paint(3);
         private Paint boxPaint = new Paint(3);
         ImageFaceView(Context context) {
             super(context);
             setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            pinch = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                @Override public boolean onScale(ScaleGestureDetector detector) {
+                    float oldZoom = zoom;
+                    zoom = Math.max(1f, Math.min(8f, zoom * detector.getScaleFactor()));
+                    // Preserve the image point beneath the pinch focus.
+                    float fx = detector.getFocusX() - getWidth() / 2f;
+                    float fy = detector.getFocusY() - getHeight() / 2f;
+                    float ratio = zoom / oldZoom;
+                    panX = fx - (fx - panX) * ratio;
+                    panY = fy - (fy - panY) * ratio;
+                    clampPan();
+                    invalidate();
+                    return true;
+                }
+            });
             boxPaint.setColor(Color.GREEN);
             boxPaint.setStyle(Paint.Style.STROKE);
             boxPaint.setStrokeWidth(6f);
             boxPaint.setAntiAlias(true);
         }
         void setImage(Bitmap value) {
+            // Detection updates replace the rendered bitmap; retain current zoom.
+            if (bitmap == null || bitmap.getWidth() != value.getWidth() || bitmap.getHeight() != value.getHeight()) {
+                zoom = 1f; panX = 0f; panY = 0f;
+            }
             bitmap = value;
             faces = new RectF[0];
             invalidate();
@@ -864,6 +882,42 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
         void setFaces(RectF[] value) {
             faces = value == null ? new RectF[0] : value;
             invalidate();
+        }
+        private void clampPan() {
+            float maxX = getWidth() * (zoom - 1f) / 2f;
+            float maxY = getHeight() * (zoom - 1f) / 2f;
+            panX = Math.max(-maxX, Math.min(maxX, panX));
+            panY = Math.max(-maxY, Math.min(maxY, panY));
+        }
+        @Override public boolean onTouchEvent(MotionEvent event) {
+            if (bitmap == null) return false;
+            pinch.onTouchEvent(event);
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    lastX = event.getX(); lastY = event.getY(); dragging = true;
+                    return true;
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    dragging = false;
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    if (event.getPointerCount() == 1 && dragging && !pinch.isInProgress() && zoom > 1f) {
+                        panX += event.getX() - lastX;
+                        panY += event.getY() - lastY;
+                        clampPan(); invalidate();
+                    }
+                    if (event.getPointerCount() == 1) {
+                        lastX = event.getX(); lastY = event.getY();
+                    }
+                    return true;
+                case MotionEvent.ACTION_POINTER_UP:
+                    dragging = false;
+                    return true;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    dragging = false;
+                    return true;
+            }
+            return true;
         }
         @Override protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
@@ -875,6 +929,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ca
             float left = (vw - bw * factor) / 2f;
             float top = (vh - bh * factor) / 2f;
             canvas.save();
+            canvas.translate(vw / 2f + panX, vh / 2f + panY);
+            canvas.scale(zoom, zoom);
+            canvas.translate(-vw / 2f, -vh / 2f);
             canvas.translate(left, top);
             canvas.scale(factor, factor);
             canvas.drawBitmap(bitmap, 0f, 0f, imagePaint);

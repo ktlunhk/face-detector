@@ -97,17 +97,17 @@ public final class Ui {
     }
     public void styleAction(Button button, boolean selected) {
         button.setAllCaps(false);
-        button.setTextSize(12);
+        button.setTextSize(11);
         button.setTextColor(selected ? 0xFF06131E : 0xFFE8F2FF);
         button.setBackground(rounded(selected ? 0xFF22D3EE : 0xFF1C2C41,
             selected ? 0xFF22D3EE : 0xFF314A66, 16));
-        button.setPadding(dp(4), dp(5), dp(4), dp(5));
+        button.setPadding(dp(3), dp(1), dp(3), dp(1));
         button.setMinHeight(dp(40));
         button.setGravity(Gravity.CENTER);
     }
     public LinearLayout.LayoutParams buttonParams() {
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(42), 1f);
-        lp.setMargins(dp(4), dp(3), dp(4), dp(3));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(34), 1f);
+        lp.setMargins(dp(3), dp(2), dp(3), dp(2));
         return lp;
     }
 
